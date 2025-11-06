@@ -1,3 +1,30 @@
 name,ticker,isin,hq_country,primary_language,local_language,aliases
-"Palantir Technologies Inc. Class A",PLTR,US69608A1088,"United States","English","English (US)","Gotham,Foundry,Apollo"
-"Sea Limited ADS Class A",SE,US81141R1005,Singapore,English,"English (Singapore)","Shopee,Garena,SeaMoney,SeaBank"
+Palantir Technologies Inc. Class A,PLTR,US69608A1088,United States,English,English (US),Gotham; Foundry; Apollo
+Sea Limited ADS Class A,SE,US81141R1005,Singapore,English,English (Singapore),Shopee; Garena; SeaMoney; SeaBank
+Taiwan Semiconductor Manufacturing Co. (ADR),TSM,US8740391003,Taiwan,Chinese,Mandarin Chinese (Traditional),TSMC; TSMC Washington (WaferTech)
+"International Container Terminal Services, Inc.",ICT,PHY411571011,Philippines,English,Filipino (Tagalog),Manila International Container Terminal; Contecon Guayaquil; Adriatic Gate
+"MercadoLibre, Inc.",MELI,US58733R1023,Uruguay,Spanish,Spanish (Uruguay),Mercado Pago; Mercado Envíos; Mercado Shops; Mercado Ads
+"Medpace Holdings, Inc.",MEDP,US58506Q1094,United States,English,English (US),Medpace Central Labs; Imaging Core Lab; ECG Core Lab
+Oddity Tech Ltd. Class A,ODD,IL0011945554,Israel,Hebrew,Hebrew; English (Israel),IL MAKIAGE; SpoiledChild
+"Monolithic Power Systems, Inc.",MPWR,US6098391054,United States,English,English (US),MPS; MPS Power Modules
+Reysaş Taşımacılık ve Lojistik Ticaret A.Ş.,RYSAS,TREYSGE00012,Türkiye,Turkish,Turkish,Reysaş Logistics; Reysaş Gayrimenkul Yatırım Ort.
+BYD Company Ltd. H Shares,1211.HK,CNE100000296,China,Chinese,Mandarin Chinese (Simplified),BYD Auto; BYD Battery; FinDreams
+Winmark Corporation,WINA,US9742501029,United States,English,English (US),Play It Again Sports; Plato’s Closet; Once Upon A Child; Music Go Round; Style Encore
+"The Trade Desk, Inc. Class A",TTD,US88339J1051,United States,English,English (US),Solimar; Kokai (platform)
+PDD Holdings Inc. (ADS),PDD,US7223041028,Ireland,English,English; Chinese (Mainland operations),Pinduoduo; Temu
+"TKO Group Holdings, Inc. Class A",TKO,US87256C1045,United States,English,English (US),UFC; WWE
+"Paycom Software, Inc.",PAYC,US70432V1026,United States,English,English (US),Beti; Paycom HCM
+"Qualys, Inc.",QLYS,US74758T3032,United States,English,English (US),Qualys Cloud Platform; VMDR
+CRISIL Limited,CRISIL.NS,INE007A01025,India,English,English; Hindi; Marathi,CRISIL Ratings; Coalition Greenwich
+Kaspi.kz JSC (ADS Reg S),KSPI,US48581R2004,Kazakhstan,Kazakh; Russian,Kazakh; Russian,Kaspi Bank; Kaspi Pay; Kaspi Travel
+"WHA Corporation Public Co., Ltd.",WHA.BK,TH3871010008,Thailand,Thai,Thai,WHA Logistics; WHA Industrial Development
+LVMH Moët Hennessy Louis Vuitton SE,MC.PA,FR0000121014,France,French,French,Louis Vuitton; Dior; Moët & Chandon; Hennessy; Sephora
+Indian Energy Exchange Ltd.,IEX.NS,INE022Q01020,India,English,English; Hindi,IEX Power Exchange; Indian Gas Exchange (associate)
+"SMS Co., Ltd. (Japan)",2175.T,JP3162300001,Japan,Japanese,Japanese,M3 Career (JP partner); Kaigo Kyujin Navi
+Lasertec Corporation,6920.T,JP3979150002,Japan,Japanese,Japanese,EUV mask inspection; LBIR/LMD series
+"Converge ICT Solutions, Inc.",CNVRG.PS,PHY1773T1000,Philippines,English,Filipino (Tagalog),Converge FiberX; Converge Business
+Kakao Corp.,035720.KS,KR7035720002,South Korea,Korean,Korean,KakaoTalk; KakaoBank (associate); Melon
+TAV Havalimanları Holding A.Ş.,TAVHL.IS,TRETAVH00018,Türkiye,Turkish,Turkish,İGA Services; TAV Airports; Havaş (associate)
+"Etsy, Inc.",ETSY,US29786A1060,United States,English,English (US),Etsy Marketplace; Reverb (subsidiary)
+Anadolu Efes Biracilik ve Malt Sanayii A.Ş.,AEFES.IS,TRAAEFES91A9,Türkiye,Turkish,Turkish,Efes Pilsen; Coca‑Cola İçecek (equity affiliate)
+"Teladoc Health, Inc.",TDOC,US87918A1051,United States,English,English (US),Livongo; Teladoc Virtual Care
