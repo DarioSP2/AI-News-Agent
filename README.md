@@ -84,7 +84,7 @@ python3 -m src.main
 
 This will run the entire pipeline using the configuration from your environment variables or `.env` file. The output files will be generated in the `output/` directory, and the state file will be saved in the `reports/` directory.
 
-**Note**: The current implementation uses mock services for the News and LLM APIs, so it can be run without actual API keys. The mock data is hardcoded in `src/news_api.py` and `src/llm_analyzer.py`.
+**Note**: The current implementation uses a live GNews.io client. The LLM analyzer (`src/llm_analyzer.py`) is a mock service, but the news fetching is real. You will need a valid `NEWS_API_KEY` in your `.env` file for the script to run successfully.
 
 ### 3.5. Running Tests
 

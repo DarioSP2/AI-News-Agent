@@ -18,11 +18,20 @@ class TestOutputGenerator(unittest.TestCase):
             },
             "companies": [{
                 "company_name": "TestCorp",
+                "weekly_metrics": { "trend": "Stable" },
                 "incidents": [{
                     "id": "TC-2025-01-01-001",
                     "category": "TestCategory",
                     "severity": 3,
-                    "summary_en": "A test incident"
+                    "summary_en": "A test incident",
+                    "confidence": "high",
+                    "key_quote": "This is a key quote.",
+                    "first_seen": "2025-01-01",
+                    "language": "en",
+                    "sources": [{
+                        "url": "https://example.com/news",
+                        "outlet": "Test News"
+                    }]
                 }]
             }]
         }
