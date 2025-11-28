@@ -3,3 +3,4 @@ requests
 google-cloud-storage
 openai
 google-generativeai
+python-dotenv

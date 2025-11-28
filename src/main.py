@@ -1,32 +1,21 @@
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 from src.state_manager import load_prior_state, save_state
 from src.output_generator import generate_all_outputs
-from src.news_api import search_articles
+from src.news_api import NewsAPI
 from src.llm_analyzer import analyze_articles
+
+# Load environment variables from .env file
+load_dotenv()
 
 def load_portfolio(filepath: str) -> list[dict]:
     """Loads the portfolio data from a CSV file."""
     df = pd.read_csv(filepath)
     df.rename(columns={"name": "company_name"}, inplace=True)
-    # Ensure aliases are lists
     df['aliases'] = df['aliases'].apply(lambda x: x.split(',') if isinstance(x, str) else [])
     return df.to_dict("records")
-
-def build_search_queries(company: dict) -> tuple[str, str]:
-    """Builds English and local language search queries."""
-    # This is a simplified version of the query logic
-    base_terms = [f'"{company["company_name"]}"'] + [f'"{alias}"' for alias in company.get('aliases', [])]
-    company_query = " OR ".join(base_terms)
-    controversy_terms_en = "controversy OR scandal OR probe OR investigation OR lawsuit OR fine"
-
-    english_query = f"({company_query}) AND ({controversy_terms_en})"
-    # Local language query would involve translation
-    local_language_query = english_query
-
-    print(f"Generated EN query for {company['company_name']}: {english_query}")
-    return english_query, local_language_query
 
 def calculate_company_metrics(incidents: list, prior_company_data: dict | None) -> dict:
     """Calculates metrics for a single company."""
@@ -103,10 +92,14 @@ def main():
     # 1. Initialize
     run_date = datetime.now()
     week_key = f"PortfolioName-{run_date.year}-W{run_date.isocalendar()[1]}"
-    last_week = run_date - timedelta(days=7)
-    last_week_key = f"PortfolioName-{last_week.year}-W{last_week.isocalendar()[1]}"
+    from_date = (run_date - timedelta(days=7)).strftime("%Y-%m-%d")
+    to_date = run_date.strftime("%Y-%m-%d")
+    last_week_key = f"PortfolioName-{(run_date - timedelta(days=7)).year}-W{(run_date - timedelta(days=7)).isocalendar()[1]}"
 
     print(f"Starting weekly controversy monitoring run for: {week_key}")
+
+    # Initialize News API client
+    news_api = NewsAPI()
 
     portfolio_data = load_portfolio("data/enriched_portfolio.csv")
 
@@ -122,13 +115,8 @@ def main():
         company_name = company["company_name"]
         print(f"--- Processing: {company_name} ---")
 
-        # A. Build Queries
-        en_query, local_query = build_search_queries(company)
-
         # B. Execute Search
-        articles_en = search_articles(en_query, days=7)
-        articles_local = search_articles(local_query, days=7)
-        raw_articles = articles_en + articles_local
+        raw_articles = news_api.fetch_company_news(company, from_date, to_date)
 
         if not raw_articles:
             print(f"No articles found for {company_name}. Skipping.")
@@ -157,7 +145,7 @@ def main():
 
     # 5. Generate Outputs
     final_report = {
-        "week_ending": run_date.strftime("%Y-%m-%d"),
+        "week_ending": to_date,
         "portfolio_summary": portfolio_summary,
         "companies": output_companies_data
     }
