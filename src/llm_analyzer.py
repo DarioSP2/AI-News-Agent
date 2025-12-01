@@ -1,5 +1,10 @@
 import json
 
+HIGH_PRIORITY_SOURCES = [
+    "department of justice", "commission", "court",
+    "reuters", "bloomberg", "financial times"
+]
+
 def analyze_articles(company_name: str, articles: list[dict]) -> list[dict]:
     """
     Analyzes a list of articles using an LLM to identify and score controversies.
@@ -10,12 +15,22 @@ def analyze_articles(company_name: str, articles: list[dict]) -> list[dict]:
     incidents = []
 
     for i, article in enumerate(articles):
+        # Source Weighting
+        is_high_priority = any(
+            source in article.get("source", "").lower()
+            for source in HIGH_PRIORITY_SOURCES
+        )
+
+        # In a real implementation, the LLM prompt would be updated to include:
+        # "Prioritize facts from primary sources (courts, regulators) over secondary reporting."
+        # The `is_high_priority` flag could be used to add this instruction to the prompt.
+
         # A simple rule-based mock: if a headline contains certain keywords, create an incident.
-        if "probe" in article.get("headline", "").lower() or "investigation" in article.get("headline", "").lower():
+        if "probe" in article.get("title", "").lower() or "investigation" in article.get("title", "").lower():
             incident = {
-                "id": f"{company_name[:3].upper()}-{article['date']}-{i+1}",
+                "id": f"{company_name[:3].upper()}-{article.get('published_date', '')}-{i+1}",
                 "category": "Governance/Legal",
-                "severity": 3,
+                "severity": 4 if is_high_priority else 3, # Bump severity for high-priority sources
                 "confidence": "high",
                 "summary_en": f"Mock summary: An investigation has been opened into {company_name} regarding its data practices, as reported by {article['source']}.",
                 "summary_local": "",
@@ -24,12 +39,12 @@ def analyze_articles(company_name: str, articles: list[dict]) -> list[dict]:
                     {
                         "url": article.get("url"),
                         "outlet": article.get("source"),
-                        "date": article.get("date"),
+                        "date": article.get("published_date"),
                         "language": article.get("language")
                     }
                 ],
-                "first_seen": article.get("date"),
-                "updated": article.get("date"),
+                "first_seen": article.get("published_date"),
+                "updated": article.get("published_date"),
                 "tags": ["investigation", "data privacy"]
             }
             incidents.append(incident)
