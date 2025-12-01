@@ -8,11 +8,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 CONTROVERSY_KEYWORDS = {
-    "en": "(controversy OR scandal OR probe OR investigation OR lawsuit OR fine OR recall OR breach OR sanction OR misconduct OR violation)",
-    "es": "(polémica OR escándalo OR investigación OR demanda OR multa OR retirada OR sanción OR 'mala conducta' OR infracción)",
-    "pt": "(polêmica OR escândalo OR investigação OR processo OR multa OR recall OR violação OR sanção OR 'má conduta')",
-    "fr": "(controverse OR scandale OR enquête OR procès OR amende OR rappel OR infraction OR sanction OR 'mauvaise conduite')",
+    # English: No multi-word phrases, simple parenthesis
+    "en": "(controversy OR scandal OR probe OR investigation OR lawsuit OR fine OR recall OR breach OR sanction OR misconduct)",
+
+    # Spanish: Use \" for "mala conducta"
+    "es": "(polémica OR escándalo OR investigación OR demanda OR multa OR retirada OR sanción OR \"mala conducta\" OR infracción)",
+
+    # Portuguese: Use \" for "má conduta"
+    "pt": "(polêmica OR escândalo OR investigação OR processo OR multa OR recall OR violação OR sanção OR \"má conduta\")",
+
+    # French: Use \" for "mauvaise conduite"
+    "fr": "(controverse OR scandale OR enquête OR procès OR amende OR rappel OR infraction OR sanction OR \"mauvaise conduite\")",
+
+    # German: No multi-word phrases usually needed for these terms
     "de": "(Kontroverse OR Skandal OR Ermittlung OR Klage OR Geldstrafe OR Rückruf OR Verstoß OR Sanktion OR Fehlverhalten)",
+
+    # Italian: Simple terms
     "it": "(controversia OR scandalo OR indagine OR causa OR multa OR richiamo OR violazione OR sanzione)",
 }
 
