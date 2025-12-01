@@ -33,31 +33,34 @@ def generate_incidents_csv(week_key: str, companies_data: list):
 
     df = pd.json_normalize(all_incidents_with_company_info)
 
-    # Define the columns required by the schema
-    schema_columns = [
-        "id", "company_name", "ticker", "category", "severity",
-        "confidence", "summary_en", "key_quote", "first_seen",
-        "language", "sources"
+    # Note: The incident structure might vary slightly between mock and real LLM output.
+    # LLM Analyzer output format:
+    # { "category", "severity", "summary_en", "source_url", "published_date" }
+
+    # We map this to the requested CSV schema if possible.
+    # We might need to generate 'id', 'confidence', 'key_quote' etc if not provided.
+
+    # Ensure columns exist
+    for col in ["category", "severity", "summary_en", "source_url", "published_date", "company_name", "ticker"]:
+        if col not in df.columns:
+            df[col] = None
+
+    # CSV Schema mapping
+    df['incident_id'] = df.index + 1 # Simple ID generation
+    df['incident_id'] = df.apply(lambda row: f"{row['ticker']}-{row['published_date']}-{row['incident_id']}", axis=1)
+    df['confidence'] = "High" # Default from LLM assumption? Or should be in LLM output? LLM output didn't spec it.
+    df['key_quote'] = "" # Not in new LLM output spec
+    df['source_outlet'] = "Unknown" # Not explicitly in new LLM output spec, but source_url is there.
+
+    final_csv_columns = [
+        'incident_id', 'company_name', 'ticker', 'category', 'severity',
+        'confidence', 'summary_en', 'key_quote', 'published_date', 'source_url', 'source_outlet'
     ]
 
-    # Select and rename columns as per schema
-    # Create a mapping for renaming
-    rename_mapping = {
-        "id": "incident_id",
-        "first_seen": "first_seen_date"
-    }
-
-    # Extract source info
-    df['source_url'] = df['sources'].apply(lambda x: x[0]['url'] if x and isinstance(x, list) else None)
-    df['source_outlet'] = df['sources'].apply(lambda x: x[0]['outlet'] if x and isinstance(x, list) else None)
-
-
-    # Filter for columns that exist in the dataframe to avoid KeyErrors
-    existing_cols_to_rename = {k: v for k, v in rename_mapping.items() if k in df.columns}
-    df = df.rename(columns=existing_cols_to_rename)
-
-    # The final list of columns for the CSV
-    final_csv_columns = ['incident_id', 'company_name', 'ticker', 'category', 'severity', 'confidence', 'summary_en', 'key_quote', 'first_seen_date', 'source_url', 'source_outlet']
+    # Filter/Order columns
+    for col in final_csv_columns:
+        if col not in df.columns:
+            df[col] = ""
 
     filepath = os.path.join(OUTPUT_DIR, f"incidents-{week_key}.csv")
     df.to_csv(filepath, index=False, columns=final_csv_columns)
@@ -89,14 +92,15 @@ def generate_email_body(week_key: str, summary: dict, companies_data: list, all_
     # --- Top Items ---
     top_items_html = "<h3>Top Items (by severity & recency)</h3><ol>"
     # Sort incidents by severity (desc) and date (desc)
-    top_incidents = sorted(all_incidents, key=lambda x: (x.get('severity', 0), x.get('first_seen', '')), reverse=True)[:5]
+    top_incidents = sorted(all_incidents, key=lambda x: (x.get('severity', 0), x.get('published_date', '')), reverse=True)[:5]
     if not top_incidents:
         top_items_html += "<li>No major incidents this week.</li>"
     else:
         for inc in top_incidents:
             company_name = next((c['company_name'] for c in companies_data if inc in c.get('incidents', [])), "N/A")
-            outlets = ", ".join([s.get('outlet', 'N/A') for s in inc.get('sources', [])])
-            top_items_html += f"<li>{company_name} — {inc.get('category', 'N/A')} — Sev {inc.get('severity', 0)}: {inc.get('summary_en', 'No summary.')} [Sources: {outlets}]</li>"
+            # For new LLM output structure, we just have source_url
+            source = f"<a href='{inc.get('source_url', '#')}'>Link</a>"
+            top_items_html += f"<li>{company_name} — {inc.get('category', 'N/A')} — Sev {inc.get('severity', 0)}: {inc.get('summary_en', 'No summary.')} [Source: {source}]</li>"
     top_items_html += "</ol>"
 
     # --- Company Trends ---
@@ -123,15 +127,15 @@ def generate_email_body(week_key: str, summary: dict, companies_data: list, all_
     else:
         for inc in all_incidents:
             company_name = next((c['company_name'] for c in companies_data if inc in c.get('incidents', [])), "N/A")
-            links = ", ".join([f'<a href="{s.get("url", "#")}">{s.get("outlet", "Link")}</a>' for s in inc.get("sources", [])])
+            link = f'<a href="{inc.get("source_url", "#")}">Link</a>'
             table_html += f"""
             <tr>
                 <td>{company_name}</td>
                 <td>{inc.get('category', '')}</td>
                 <td>{inc.get('severity', '')}</td>
-                <td>{inc.get('first_seen', '')}</td>
+                <td>{inc.get('published_date', '')}</td>
                 <td>{inc.get('summary_en', '')}</td>
-                <td>{links}</td>
+                <td>{link}</td>
             </tr>
             """
     table_html += "</tbody></table>"
@@ -152,7 +156,7 @@ def generate_email_body(week_key: str, summary: dict, companies_data: list, all_
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    filepath = os.path.join(OUTPUT_DIR, f"email_body-{week_key}.html")
+    filepath = os.path.join(OUTPUT_DIR, f"email_body_{week_key}.html")
     with open(filepath, "w") as f:
         f.write(full_html)
     print(f"email_body.html saved to {filepath}")
