@@ -2,5 +2,5 @@ pandas
 requests
 google-cloud-storage
 openai
-google-generativeai
+google-genai
 python-dotenv
