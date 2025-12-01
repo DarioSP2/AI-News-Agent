@@ -90,11 +90,12 @@ def deliver_and_save_state(week_key: str, report: dict):
 def main():
     """Main orchestration function."""
     # 1. Initialize
+    portfolio_name = os.getenv("PORTFOLIO_NAME", "PortfolioName")
     run_date = datetime.now()
-    week_key = f"PortfolioName-{run_date.year}-W{run_date.isocalendar()[1]}"
+    week_key = f"{portfolio_name}-{run_date.year}-W{run_date.isocalendar()[1]}"
     from_date = (run_date - timedelta(days=7)).strftime("%Y-%m-%d")
     to_date = run_date.strftime("%Y-%m-%d")
-    last_week_key = f"PortfolioName-{(run_date - timedelta(days=7)).year}-W{(run_date - timedelta(days=7)).isocalendar()[1]}"
+    last_week_key = f"{portfolio_name}-{(run_date - timedelta(days=7)).year}-W{(run_date - timedelta(days=7)).isocalendar()[1]}"
 
     print(f"Starting weekly controversy monitoring run for: {week_key}")
 
