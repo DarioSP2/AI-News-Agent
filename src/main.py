@@ -1,4 +1,5 @@
 import os
+import time
 import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -89,14 +90,7 @@ def deliver_and_save_state(week_key: str, report: dict, email_html: str):
     responsible_email = os.getenv("RESPONSIBLE_EMAIL")
     subject = f"Weekly ESG Controversy Report: {week_key}"
     if responsible_email:
-        # Note: The user mentioned multiple receivers: dasi.msc@cbs.dk and das.msc@cbs.dk
-        # I will send to RESPONSIBLE_EMAIL as the primary logic, but spec said "receivers will be...".
-        # I'll stick to env var RESPONSIBLE_EMAIL for flexibility, but maybe I should support a list?
-        # The env var typically holds one, but let's check if it's comma separated or just one.
-        # Spec says: RESPONSIBLE_EMAIL="receiver@example.com"
-        # User message says: "receivers will be dasi.msc@cbs.dk and das.msc@cbs.dk"
-        # I will assume RESPONSIBLE_EMAIL can contain comma separated values or I should just code them in?
-        # Better: I will use the env var. If the user wants multiple, they can put "a@b.com, c@d.com" and I'll split.
+        # Handles comma-separated emails from env var
         recipients = [r.strip() for r in responsible_email.split(',')]
         send_email(subject, email_html, recipients)
     else:
@@ -137,10 +131,12 @@ def main():
     # 3. Loop Companies
     all_incidents = []
     output_companies_data = []
-    for company in portfolio_data:
-        company_name = company["company_name"]
-        print(f"--- Processing: {company_name} ---")
+    total_companies = len(portfolio_data)
 
+    for i, company in enumerate(portfolio_data):
+        company_name = company["company_name"]
+        print(f"--- Processing ({i+1}/{total_companies}): {company_name} ---")
+        
         company_incidents = []
 
         if provider == "openai":
@@ -157,6 +153,10 @@ def main():
              # B & C. Search and Analyze (Gemini Grounding)
              # No external news fetch.
              company_incidents = llm_analyzer.analyze(company_name)
+
+             # Rate Limit Sleep
+             print("Sleeping 10s to respect API limits...")
+             time.sleep(10)
 
         # Extend incidents list
         all_incidents.extend(company_incidents)
@@ -182,10 +182,6 @@ def main():
         "companies": output_companies_data
     }
 
-    # Generate files and get email body content
-    # We need to make sure generate_all_outputs returns the html content so we can send it
-    # Currently it seems it might just write files. I need to check output_generator.py
-    # I will modify output_generator.py in next step, let's assume it returns HTML or I read it.
     generate_all_outputs(week_key, final_report)
 
     # Read the generated HTML email body
