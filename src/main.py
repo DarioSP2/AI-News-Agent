@@ -90,6 +90,7 @@ def deliver_and_save_state(week_key: str, report: dict, email_html: str):
     responsible_email = os.getenv("RESPONSIBLE_EMAIL")
     subject = f"Weekly ESG Controversy Report: {week_key}"
     if responsible_email:
+        # Handles comma-separated emails from env var
         recipients = [r.strip() for r in responsible_email.split(',')]
         send_email(subject, email_html, recipients)
     else:
@@ -135,7 +136,7 @@ def main():
     for i, company in enumerate(portfolio_data):
         company_name = company["company_name"]
         print(f"--- Processing ({i+1}/{total_companies}): {company_name} ---")
-
+        
         company_incidents = []
 
         if provider == "openai":

@@ -58,12 +58,13 @@ class GoogleAnalyzer(LLMAnalyzer):
         import google.generativeai as genai
         genai.configure(api_key=self.api_key)
 
-        self.model_name = "gemini-2.0-flash"
+        # Using the experimental 2.0 Flash model with Search Grounding
+        self.model_name = "gemini-2.0-flash-exp"
 
         self.model = genai.GenerativeModel(self.model_name, tools='google_search_retrieval')
 
     def analyze(self, company_name: str, context: Any = None) -> List[Dict[str, Any]]:
-        logger.info(f"Analyzing {company_name} with Google Gemini 2.0...")
+        logger.info(f"Analyzing {company_name} with Google Gemini (Grounding)...")
 
         prompt = f"""
         You are an automated risk analyst. Your goal is to identify material ESG, legal, and financial controversies regarding the company "{company_name}" from the last 7 days.
