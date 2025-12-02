@@ -58,22 +58,27 @@ class NewsAPI:
     def fetch_company_news(self, company, from_date, to_date):
         """
         Fetch news for a specific company using GNews.io.
+        Order: Local Language (if applicable) -> English.
         """
         articles = []
         company_name = company.get('company_name', '')
 
-        # --- Request 1: English Search ---
-        query_en = f'"{company_name}" AND {CONTROVERSY_KEYWORDS["en"]}'
-        articles.extend(self._execute_gnews_search(query_en, "en", "us", from_date, to_date, company_name))
-
-        # --- Request 2: Local Language Search ---
+        # Determine Local Language
         local_lang_name = company.get('local_language', 'English')
         lang_code = self._get_language_code(local_lang_name)
 
+        # --- Request 1: Local Language Search (Priority) ---
         if lang_code != 'en':
             local_keywords = CONTROVERSY_KEYWORDS.get(lang_code, CONTROVERSY_KEYWORDS['en'])
             query_local = f'"{company_name}" AND {local_keywords}'
+            # We don't restrict country for local search to be broader, or we could if mapped.
             articles.extend(self._execute_gnews_search(query_local, lang_code, None, from_date, to_date, company_name))
+
+        # --- Request 2: English Search ---
+        query_en = f'"{company_name}" AND {CONTROVERSY_KEYWORDS["en"]}'
+        # Prioritize US news for English, but maybe we should relax country if company is global?
+        # Current code uses "us". Keeping it for now.
+        articles.extend(self._execute_gnews_search(query_en, "en", "us", from_date, to_date, company_name))
 
         return articles
 

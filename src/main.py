@@ -1,11 +1,13 @@
 import os
+import time
 import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from src.state_manager import load_prior_state, save_state
 from src.output_generator import generate_all_outputs
 from src.news_api import NewsAPI
-from src.llm_analyzer import analyze_articles
+from src.llm_analyzer import get_llm_analyzer
+from src.email_sender import send_email
 
 # Load environment variables from .env file
 load_dotenv()
@@ -80,12 +82,20 @@ def calculate_portfolio_summary(all_incidents: list, prior_summary: dict | None)
         "notes": "Initial run, no trend data available." if not prior_summary else "Week-over-week comparison."
     }
 
-def deliver_and_save_state(week_key: str, report: dict):
-    """Placeholder: Sends email and saves the current week's report."""
+def deliver_and_save_state(week_key: str, report: dict, email_html: str):
+    """Sends email and saves the current week's report."""
     print(f"Delivering email report for {week_key}.")
+
+    # Send Email
+    responsible_email = os.getenv("RESPONSIBLE_EMAIL")
+    subject = f"Weekly ESG Controversy Report: {week_key}"
+    if responsible_email:
+        recipients = [r.strip() for r in responsible_email.split(',')]
+        send_email(subject, email_html, recipients)
+    else:
+        print("RESPONSIBLE_EMAIL not set. Skipping email delivery.")
+
     save_state(week_key, report)
-    # In a real implementation, this would use an email API
-    pass
 
 def main():
     """Main orchestration function."""
@@ -97,10 +107,18 @@ def main():
     to_date = run_date.strftime("%Y-%m-%d")
     last_week_key = f"{portfolio_name}-{(run_date - timedelta(days=7)).year}-W{(run_date - timedelta(days=7)).isocalendar()[1]}"
 
-    print(f"Starting weekly controversy monitoring run for: {week_key}")
+    provider = os.getenv("LLM_PROVIDER", "google").lower()
 
-    # Initialize News API client
-    news_api = NewsAPI()
+    print(f"Starting weekly controversy monitoring run for: {week_key}")
+    print(f"Using Provider: {provider.upper()}")
+
+    # Initialize LLM Analyzer
+    llm_analyzer = get_llm_analyzer()
+
+    # Initialize News API client (only needed for OpenAI)
+    news_api = None
+    if provider == "openai":
+        news_api = NewsAPI()
 
     portfolio_data = load_portfolio("data/enriched_portfolio.csv")
 
@@ -112,22 +130,34 @@ def main():
     # 3. Loop Companies
     all_incidents = []
     output_companies_data = []
-    for company in portfolio_data:
+    total_companies = len(portfolio_data)
+
+    for i, company in enumerate(portfolio_data):
         company_name = company["company_name"]
-        print(f"--- Processing: {company_name} ---")
+        print(f"--- Processing ({i+1}/{total_companies}): {company_name} ---")
 
-        # B. Execute Search
-        raw_articles = news_api.fetch_company_news(company, from_date, to_date)
+        company_incidents = []
 
-        if not raw_articles:
-            print(f"No articles found for {company_name}. Skipping.")
-            company_metrics = calculate_company_metrics([], prior_companies.get(company_name))
-            company_report = {"company_name": company_name, "ticker": company["ticker"], "incidents": [], "weekly_metrics": company_metrics}
-            output_companies_data.append(company_report)
-            continue
+        if provider == "openai":
+            # B. Execute Search (GNews)
+            raw_articles = news_api.fetch_company_news(company, from_date, to_date)
+            if not raw_articles:
+                print(f"No articles found for {company_name}. Skipping LLM.")
+                # We skip LLM but still need to record empty state
+            else:
+                # C. Analyze & Score (LLM Call with context)
+                company_incidents = llm_analyzer.analyze(company_name, context=raw_articles)
 
-        # C. Analyze & Score (LLM Call)
-        company_incidents = analyze_articles(company_name, raw_articles)
+        elif provider == "google":
+             # B & C. Search and Analyze (Gemini Grounding)
+             # No external news fetch.
+             company_incidents = llm_analyzer.analyze(company_name)
+
+             # Rate Limit Sleep
+             print("Sleeping 10s to respect API limits...")
+             time.sleep(10)
+
+        # Extend incidents list
         all_incidents.extend(company_incidents)
 
         # E. Calculate Company Metrics
@@ -150,10 +180,18 @@ def main():
         "portfolio_summary": portfolio_summary,
         "companies": output_companies_data
     }
+
     generate_all_outputs(week_key, final_report)
 
+    # Read the generated HTML email body
+    email_body_path = os.path.join("output", f"email_body_{week_key}.html")
+    email_content = ""
+    if os.path.exists(email_body_path):
+        with open(email_body_path, "r") as f:
+            email_content = f.read()
+
     # 6. Deliver & Save State
-    deliver_and_save_state(week_key, final_report)
+    deliver_and_save_state(week_key, final_report, email_content)
 
     print("--- Run Complete ---")
 

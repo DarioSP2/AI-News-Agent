@@ -1,134 +1,133 @@
-# Weekly Controversy Monitoring Agent
+# AI Controversy Monitoring Agent
 
-## 1. Project Overview
+## 1. Introduction
 
-### 1.1. Goal
+This project is an automated AI agent designed to monitor a portfolio of companies for ESG (Environmental, Social, Governance), legal, and financial controversies. It runs weekly, scans global news in multiple languages, and uses advanced Large Language Models (LLMs) to analyze risks.
 
-The objective of this project is to provide an automated, serverless pipeline that runs weekly to monitor a portfolio of companies for new controversies. The system is designed to scan multi-lingual news sources, leverage a Large Language Model (LLM) for sophisticated analysis, and produce a clear, actionable weekly report for stakeholders. The final outputs include an email summary, a machine-readable JSON report, and a CSV file for archival and Business Intelligence (BI) purposes.
+**Key Features:**
+*   **Automated Surveillance:** Scans news for the last 7 days.
+*   **Bilingual Search:** Searches in English and the company's local language.
+*   **AI Analysis:** Uses Google Gemini or OpenAI GPT-4 to filter noise, classify incidents, and score severity.
+*   **Reporting:** Generates a JSON data file, a CSV for spreadsheets, and an HTML email summary.
 
-### 1.2. Core Functionality
+## 2. Getting Started
 
-- **Ingest**: Reads a static CSV file defining the company portfolio.
-- **Schedule**: Designed to be triggered on a weekly schedule (e.g., every Friday at 09:00).
-- **Search**: For each company, it searches for relevant news articles from the last 7 days using a dedicated News/Search API, supporting both English and the company's local language.
-- **Analyze**: Utilizes an LLM to perform advanced analysis on the search results, including:
-    - Deduplication of stories about the same incident.
-    - Classification of incidents into predefined categories.
-    - Severity scoring of each incident on a 1-5 scale.
-    - Summarization of incidents in English.
-    - Extraction of source evidence (quotes, URLs).
-- **Compare**: Loads the previous week's results to calculate week-over-week (WoW) deltas for key risk metrics.
-- **Report**: Generates and delivers three distinct outputs: an HTML email, a `report.json` file, and an `incidents.csv` file.
+Follow these instructions to set up and run the bot on your machine.
 
-## 2. System Architecture
+### 2.1. Prerequisites
 
-This system is designed for a serverless architecture to ensure cost-efficiency and low management overhead. The primary technology stack is Python 3.10+, intended for deployment on a cloud platform like Google Cloud Platform (GCP) or Amazon Web Services (AWS).
+*   **Python 3.10 or higher**: [Download Here](https://www.python.org/downloads/)
+*   **Git** (Optional, for cloning): [Download Here](https://git-scm.com/downloads)
 
-### 2.1. Components
+### 2.2. Installation
 
-- **Scheduler (The "Clock")**: A cloud-native scheduler (e.g., Google Cloud Scheduler, Amazon EventBridge) triggers the main orchestration function on a fixed weekly schedule.
-- **Orchestrator (The "Worker")**: A serverless function (e.g., Google Cloud Function, AWS Lambda) that contains the core Python script. This function orchestrates the entire data flow from data ingestion to final delivery.
-- **Memory (The "Database")**: A cloud storage bucket (e.g., Google Cloud Storage, Amazon S3) is used to persist the state between runs. It stores the `report-{WEEK_KEY}.json` file each week, which is then loaded by the next week's run to perform the WoW comparison.
-- **Tools (External APIs)**:
-    - **News/Search API**: A required external API for fetching news articles (e.g., NewsAPI.org, Meltwater, Google Custom Search API).
-    - **LLM API**: A required API for the analysis task (e.g., Google Gemini, OpenAI GPT).
-    - **Email API**: A required API for reliable email delivery (e.g., SendGrid, Mailgun, Amazon SES).
+#### Step 1: Download the Code
+You can clone the repository using Git or download the ZIP file.
 
-## 3. How to Set Up and Run
+**Using Git:**
+```bash
+git clone <repository-url>
+cd <repository-folder>
+```
 
-### 3.1. Prerequisites
+#### Step 2: Create a Virtual Environment (Recommended)
+This isolates the project dependencies from your system.
 
-- Python 3.10+
-- `pip` for package management
-
-### 3.2. Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd <repository-name>
-    ```
-
-2.  **Install dependencies:**
-    It is highly recommended to use a virtual environment.
+*   **MacOS / Linux:**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
     ```
 
-### 3.3. Configuration
+*   **Windows (Command Prompt):**
+    ```cmd
+    python -m venv venv
+    venv\Scripts\activate.bat
+    ```
 
-The application requires several environment variables to be set. You can create a `.env` file in the project root and the application will load it, or set them directly in your shell.
+*   **Windows (PowerShell):**
+    ```powershell
+    python -m venv venv
+    .\venv\Scripts\Activate.ps1
+    ```
 
-**User-Provided Variables:**
-
-- `PORTFOLIO_NAME`: The name of the portfolio being monitored (e.g., "EM Consumer 30").
-- `RESPONSIBLE_NAME`: The name of the person receiving the report (e.g., "Dario").
-- `RESPONSIBLE_EMAIL`: The email address to send the report to.
-
-**Programmer-Provisioned Keys:**
-
-- `NEWS_API_KEY`: Your API key for the chosen News/Search API.
-- `LLM_API_KEY`: Your API key for the chosen LLM API.
-- `EMAIL_API_KEY`: Your API key for the chosen Email API.
-- `GCS_BUCKET_NAME`: The name of the GCS/S3 bucket for state storage.
-
-### 3.4. Local Execution
-
-To run the pipeline locally, execute the main script as a module from the project root:
-
+#### Step 3: Install Dependencies
+Run the following command to install the required libraries:
 ```bash
-python3 -m src.main
+pip install -r requirements.txt
 ```
 
-This will run the entire pipeline using the configuration from your environment variables or `.env` file. The output files will be generated in the `output/` directory, and the state file will be saved in the `reports/` directory.
+### 2.3. Configuration
 
-**Note**: The current implementation uses a live GNews.io client. The LLM analyzer (`src/llm_analyzer.py`) is a mock service, but the news fetching is real. You will need a valid `NEWS_API_KEY` in your `.env` file for the script to run successfully.
+The bot is configured using a `.env` file. This file holds your API keys and settings.
 
-### 3.5. Running Tests
+1.  **Create the file:**
+    *   Copy the example file provided in the repository.
+    *   **MacOS / Linux:** `cp .env.example .env`
+    *   **Windows:** Copy `.env.example`, rename the copy to `.env`.
 
-To run the suite of unit tests, use the following command from the project root:
+2.  **Edit the `.env` file:**
+    Open the `.env` file in a text editor (Notepad, TextEdit, VS Code) and fill in the following details.
 
-```bash
-python3 -m unittest discover tests
-```
+    **A. Choose your AI Provider (`LLM_PROVIDER`)**
+    You can choose between Google Gemini (cheaper/free tier available) or OpenAI GPT-4.
 
-## 4. Project Structure
+    *   **Option 1: Google Gemini (Recommended for simplicity)**
+        *   Set `LLM_PROVIDER="google"`
+        *   Get an API Key from [Google AI Studio](https://aistudio.google.com/).
+        *   Paste it into `GOOGLE_API_KEY`.
+        *   *Note: This mode uses Google's internal search, so you don't need a separate News API key.*
 
-```
-.
-├── data/
-│   └── enriched_portfolio.csv  # Input CSV with company data
-├── output/                     # Generated output files (gitignored)
-├── reports/                    # Weekly state JSON files (gitignored)
-├── src/
-│   ├── __init__.py
-│   ├── email_sender.py         # Module for sending emails
-│   ├── llm_analyzer.py         # Module for LLM analysis
-│   ├── main.py                 # Main orchestration script
-│   ├── news_api.py             # Module for fetching news
-│   ├── output_generator.py     # Module for creating output files
-│   └── state_manager.py        # Module for loading/saving state
-├── tests/
-│   ├── __init__.py
-│   ├── test_output_generator.py
-│   └── test_state_manager.py
-├── .gitignore
-├── README.md
-└── requirements.txt
-```
+    *   **Option 2: OpenAI GPT-4**
+        *   Set `LLM_PROVIDER="openai"`
+        *   Get an API Key from [OpenAI Platform](https://platform.openai.com/).
+        *   Paste it into `OPENAI_API_KEY`.
+        *   **Required:** You also need a GNews API key for news fetching. Get it from [GNews.io](https://gnews.io/).
+        *   Paste it into `NEWS_API_KEY`.
 
-## 5. Input and Output Schemas
+    **B. Email Settings (Optional)**
+    To receive the weekly email report:
+    *   Set `SENDGRID_API_KEY` (Get one from [SendGrid](https://sendgrid.com/)).
+    *   Set `SENDGRID_FROM_EMAIL` (The email address validated in SendGrid).
+    *   Set `RESPONSIBLE_EMAIL` (The recipient's email address).
 
-### 5.1. Input CSV (`data/enriched_portfolio.csv`)
+### 2.4. Running the Bot
 
-The input CSV must contain the following columns: `name`, `ticker`, `isin`, `hq_country`, `primary_language`, `local_language`, `aliases`.
+Once everything is set up, run the bot using the following command from the project root folder:
 
-### 5.2. Output JSON (`report.json`)
+*   **MacOS / Linux:**
+    ```bash
+    python3 -m src.main
+    ```
 
-The main JSON output follows a nested structure containing a portfolio summary and a list of companies with their respective incidents and metrics. For the full schema, please refer to the technical specification document.
+*   **Windows:**
+    ```cmd
+    python -m src.main
+    ```
 
-### 5.3. Output CSV (`incidents.csv`)
+**What happens next?**
+1.  The bot reads the portfolio from `data/enriched_portfolio.csv`.
+2.  It searches for news for each company.
+3.  It analyzes the news for controversies.
+4.  It saves reports to the `output/` folder (`report.json`, `incidents.csv`).
+5.  It saves the run history to `reports/` for trend comparison next week.
+6.  It sends an email summary to the configured address.
 
-A flattened CSV containing all incidents found during the week. The columns are: `incident_id`, `company_name`, `ticker`, `category`, `severity`, `confidence`, `summary_en`, `key_quote`, `first_seen_date`, `language`, `source_url`, `source_outlet`.
+## 3. Project Structure
+
+For developers or curious users, here is how the code is organized:
+
+*   `data/`: Contains the portfolio CSV file.
+*   `output/`: Where the generated reports (JSON, CSV, HTML) are saved.
+*   `reports/`: Stores historical state for week-over-week comparison.
+*   `src/`: The source code.
+    *   `main.py`: The brain of the operation.
+    *   `llm_analyzer.py`: Handles the AI logic (Gemini/OpenAI).
+    *   `news_api.py`: Fetches news (used for OpenAI mode).
+    *   `email_sender.py`: Sends the emails.
+*   `tests/`: Unit tests to ensure the code works correctly.
+
+## 4. Troubleshooting
+
+*   **ModuleNotFoundError**: Make sure you activated your virtual environment (Step 2) and installed requirements (Step 3). Also, ensure you run the command as `python -m src.main`, not just `python src/main.py`.
+*   **API Errors**: Double-check your API keys in the `.env` file. Ensure there are no extra spaces or quotes around the keys unless necessary.

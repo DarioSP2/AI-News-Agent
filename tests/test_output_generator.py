@@ -19,6 +19,7 @@ class TestOutputGenerator(unittest.TestCase):
             "companies": [{
                 "company_name": "TestCorp",
                 "weekly_metrics": { "trend": "Stable" },
+                "ticker": "TC",
                 "incidents": [{
                     "id": "TC-2025-01-01-001",
                     "category": "TestCategory",
@@ -27,6 +28,7 @@ class TestOutputGenerator(unittest.TestCase):
                     "confidence": "high",
                     "key_quote": "This is a key quote.",
                     "first_seen": "2025-01-01",
+                    "published_date": "2025-01-01",
                     "language": "en",
                     "sources": [{
                         "url": "https://example.com/news",
@@ -38,7 +40,7 @@ class TestOutputGenerator(unittest.TestCase):
         self.output_dir = "output"
         self.json_path = os.path.join(self.output_dir, f"report-{self.week_key}.json")
         self.csv_path = os.path.join(self.output_dir, f"incidents-{self.week_key}.csv")
-        self.html_path = os.path.join(self.output_dir, f"email_body-{self.week_key}.html")
+        self.html_path = os.path.join(self.output_dir, f"email_body_{self.week_key}.html")
 
     def tearDown(self):
         for path in [self.json_path, self.csv_path, self.html_path]:
@@ -62,7 +64,7 @@ class TestOutputGenerator(unittest.TestCase):
         import pandas as pd
         df = pd.read_csv(self.csv_path)
         self.assertEqual(len(df), 1)
-        self.assertEqual(df.iloc[0]['incident_id'], 'TC-2025-01-01-001')
+        self.assertEqual(df.iloc[0]['incident_id'], 'TC-2025-01-01-1')
 
 
 if __name__ == '__main__':
